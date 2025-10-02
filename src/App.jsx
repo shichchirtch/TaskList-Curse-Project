@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 
 function App() {
 
@@ -13,6 +13,21 @@ function App() {
         completedTasks:true,
       }
   );
+
+  const  [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(()=>{
+    const timer = setInterval(()=>{
+
+    setCurrentTime(new Date());
+      }, 1000)
+    return () => clearInterval(timer)
+  }, []); // пустой массив зависимостей привод к однократному рендеру после старта
+
+
+
+
+
 
   function toggleSection(section){
     setOpenSection((prev)=>({
@@ -61,17 +76,8 @@ function App() {
 
   }
 
-
   const activeTasks = sortTask(tasks.filter((task) =>!task.completed));
   const completedTasks = tasks.filter((task) =>task.completed);
-
-
-
-
-
-
-
-
 
   return <div className="app">
     <div className="task-container">
@@ -96,7 +102,11 @@ function App() {
           By Rate  {sortType === 'priority' && (sortOrder === 'asc' ? '\u2191' : '\u2193')}
         </button>
       </div>
-      {openSection.tasks && <TaskList  completeTask={completeTask} deleteTask={deleteTask} activeTasks={activeTasks}/>}
+      {openSection.tasks && <TaskList  completeTask={completeTask}
+                                       deleteTask={deleteTask}
+                                       activeTasks={activeTasks}
+                                       currentTime={currentTime}
+                                                                              />}
     </div>
 
     <div className="completed-task-container">
@@ -110,6 +120,9 @@ function App() {
 <Footer/>
   </div>;
 }
+
+
+
 
 
 function TaskForm({addTask}){
@@ -149,13 +162,14 @@ function TaskForm({addTask}){
   </form>
 }
 
-function TaskList({activeTasks, completeTask, deleteTask}){
+function TaskList({activeTasks, completeTask, deleteTask, currentTime}){
   return <ul className='task-list'>
     {activeTasks.map((task)=>(<TaskItem
         task={task}
         key={task.id}
         deleteTask={deleteTask}
         completeTask={completeTask}
+        isOverdue = {new Date(task.deadLine) < currentTime}
         />
         ))}
 
@@ -172,10 +186,10 @@ function CompletedTaskList({ completedTasks, deleteTasks }){
   </ul>
 }
 
-function TaskItem({task, completeTask, deleteTask}){
+function TaskItem({task, completeTask, deleteTask, isOverdue}){
    const {title, priority, deadLine, id} = task;
 
-  return <li className={`task-item ${priority.toLowerCase()}`}>
+  return <li className={`task-item ${priority.toLowerCase()} ${isOverdue ? "overdue" :''}`}>
 
     <div className='task-info'>
       <div>
